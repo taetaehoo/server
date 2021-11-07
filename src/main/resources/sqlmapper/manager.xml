@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.ManagerMapper">
+    <resultMap id="result" type="persistence.dto.ManagerDTO">
+        <result property="id" column="id"/>
+        <result property="password" column="password"/>
+    </resultMap>
+    <select id="selectAll" resultMap="result">
+        SELECT * FROM BOARD
+    </select>
+    <update id="updatePostWithBoardID">
+        UPDATE board set title = #{title} , contents = #{contents} where board_id = #{id}
+    </update>
+    <delete id="deletePost">
+        DELETE from board where board_id = #{board_id};
+    </delete>
+    <insert id="register">
+        insert into board (id, password) values (#{id}, #{password})
+    </insert>
+</mapper>
