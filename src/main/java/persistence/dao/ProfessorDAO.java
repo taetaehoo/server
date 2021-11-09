@@ -533,14 +533,14 @@ public class ProfessorDAO {
         String csCode = sc.next();
         selectEnrollmentStudent(conn, pNumber , csCode);
     }
-    private void selectEnrollmentStudent(Connection conn, String pNumber, String csCode) {
+    private void selectEnrollmentStudent(Connection conn, String pNumber, String sCode) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         LinkedList<String> list = new LinkedList<>();
-        String selectSubjectQuery = "select sNumber from union.enrollment where csCode = ?";
+        String selectSubjectQuery = "select sNumber from union.enrollment where sCode = ?";
         try {
             pstmt = conn.prepareStatement(selectSubjectQuery);
-            pstmt.setString(1, csCode);
+            pstmt.setString(1, sCode);
             rs = pstmt.executeQuery();
 
             while (rs.next()) {

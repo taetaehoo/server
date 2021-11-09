@@ -539,15 +539,15 @@ public class StudentDAO {
     public void selectAllMyEnrollment(Connection conn, int sNumber) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        String selectQuery = "select csCode from enrollment where sNumber = ?";
+        String selectQuery = "select sCode from enrollment where sNumber = ?";
 
         try {
             pstmt = conn.prepareStatement(selectQuery);
             pstmt.setInt(1, sNumber);
             rs = pstmt.executeQuery();
             while (rs.next()) {
-                String csCode = rs.getString("csCode");
-                printTable(conn, csCode);
+                String sCode = rs.getString("sCode");
+                printTable(conn, sCode);
             }
         } catch (SQLException e) {
             System.out.println("error : " + e);
@@ -770,24 +770,24 @@ public class StudentDAO {
 
     private void insertEnrollment(Connection conn, int sNumber) {
         System.out.print("수강하고 싶은 과목 코드를 입력하세요: ");
-        String csCode = sc.next();
+        String sCode = sc.next();
         enrollmentDTO enrollmentDTO = new enrollmentDTO();
-        enrollmentDTO.setCsCode(csCode);
+        enrollmentDTO.setSCode(sCode);
         enrollmentDTO.setSNumber(sNumber);
         insertEnrollment(conn, enrollmentDTO);
     }
-    private int showcount(Connection conn, String csCode) {
+    private int showcount(Connection conn, String sCode) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         int count = 0;
-        String selectQuery = "select count(csCode) from union.enrollment where csCode = ?";
+        String selectQuery = "select count(sCode) from union.enrollment where sCode = ?";
 
         try {
             pstmt = conn.prepareStatement(selectQuery);
-            pstmt.setString(1, csCode);
+            pstmt.setString(1, sCode);
             rs = pstmt.executeQuery();
             while (rs.next()) {
-                count = rs.getInt("count(csCode)");
+                count = rs.getInt("count(sCode)");
             }
         } catch (SQLException e) {
             System.out.println("error : " + e);
@@ -808,16 +808,16 @@ public class StudentDAO {
     private boolean canStudy(Connection conn, enrollmentDTO enrollmentDTO) {//이게 내가 지금 넣으려고 하는 수강신청
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        String selectQuery = "select csCode from enrollment where sNumber = ?";
+        String selectQuery = "select sCode from enrollment where sNumber = ?";
         boolean result = true;
         try {
             pstmt = conn.prepareStatement(selectQuery);
             pstmt.setInt(1, enrollmentDTO.getSNumber());
-            openedSubjectDTO openedSubjectDTO = getThis(conn, enrollmentDTO.getCsCode());//내가 넣으려고 하는 개설 교과목의 일, 시작, 끝
+            openedSubjectDTO openedSubjectDTO = getThis(conn, enrollmentDTO.getSCode());//내가 넣으려고 하는 개설 교과목의 일, 시작, 끝
             rs = pstmt.executeQuery();
             while (rs.next()) {//내가 넣어둔 수강신청 찾기
-                String csCode = rs.getString("csCode");
-                if(!checkTable(openedSubjectDTO, getThis(conn, csCode))) {
+                String sCode = rs.getString("sCode");
+                if(!checkTable(openedSubjectDTO, getThis(conn, sCode))) {
                     result = false;
                     break;
                 }
@@ -865,13 +865,13 @@ public class StudentDAO {
     }
     private void insertEnrollment(Connection conn, enrollmentDTO enrollmentDTO) {
         PreparedStatement pstmt = null;
-        String createSubjectQuery = "insert into enrollment(csCode, sNumber, regdate) values (?, ?, now())";
+        String createSubjectQuery = "insert into enrollment(sCode, sNumber, regdate) values (?, ?, now())";
         openedSubjectDTO openedSubjectDTO = new openedSubjectDTO();
         try {
             pstmt = conn.prepareStatement(createSubjectQuery);
-            pstmt.setString(1, enrollmentDTO.getCsCode());
+            pstmt.setString(1, enrollmentDTO.getSCode());
             pstmt.setInt(2, enrollmentDTO.getSNumber());
-            if (showcount(conn, enrollmentDTO.getCsCode()) == openedSubjectDTO.getMAX_STUDENT()) {
+            if (showcount(conn, enrollmentDTO.getSCode()) == openedSubjectDTO.getMAX_STUDENT()) {
                 System.out.println("최대 수강 인원을 초과하였습니다.");
                 return;
             }
@@ -900,19 +900,19 @@ public class StudentDAO {
 
     private void deleteEnrollment(Connection conn, int sNumber) {
         System.out.print("삭제하고 싶은 과목 코드를 입력하세요: ");
-        String csCode = sc.next();
+        String sCode = sc.next();
         enrollmentDTO enrollmentDTO = new enrollmentDTO();
-        enrollmentDTO.setCsCode(csCode);
+        enrollmentDTO.setSCode(sCode);
         enrollmentDTO.setSNumber(sNumber);
         deleteEnrollment(conn, enrollmentDTO);
     }
 
     private void deleteEnrollment(Connection conn, enrollmentDTO enrollmentDTO) {
         PreparedStatement pstmt = null;
-        String deleteSubjectQuery = "delete from enrollment where csCode = ? and sNumber = ?";
+        String deleteSubjectQuery = "delete from enrollment where sCode = ? and sNumber = ?";
         try {
             pstmt = conn.prepareStatement(deleteSubjectQuery);
-            pstmt.setString(1, enrollmentDTO.getCsCode());
+            pstmt.setString(1, enrollmentDTO.getSCode());
             pstmt.setInt(2, enrollmentDTO.getSNumber());
             pstmt.executeUpdate();
             conn.commit();

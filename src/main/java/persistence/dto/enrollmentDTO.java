@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class enrollmentDTO {
-    private String csCode;
+    private String sCode;
     private int sNumber;
     private LocalDateTime regdate;
 }

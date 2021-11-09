@@ -592,7 +592,6 @@ public class ManagerDAO {
             updateSubject(conn, openedSubjectDTO);
     }
 
-
     private void createSubject(Connection conn, openedSubjectDTO openedSubjectDTO) {
         PreparedStatement pstmt = null;
         String createSubjectQuery = "insert into openedSubject(csCode, pNumber, maxStudent, lectureStartTime, lectureEndTime, lectureDay, lectureRoom) values (?, ?, ?, ?, ?, ?, ?)";
