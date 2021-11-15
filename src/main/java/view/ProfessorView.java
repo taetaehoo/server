@@ -18,7 +18,8 @@ public class ProfessorView {
             System.out.println("4. 교과목 강의 계획서 조회");
             System.out.println("5. 교과목 수강 신청 학생 목록 조회");
             System.out.println("6. 교과목 시간표 조회");
-            System.out.println("7. 뒤로 가기");
+            System.out.println("7. 개설 교과목 관리");
+            System.out.println("8. 뒤로 가기");
             System.out.print("메뉴 선택: ");
             while (true) {
                 try {
@@ -49,6 +50,8 @@ public class ProfessorView {
                     professorDAO.selectTimeTable(conn, pNumber);
                     break;
                 case 7:
+                    //mapper coding
+                case 8:
                     System.out.println("뒤로가기");
                     return;
                 default:

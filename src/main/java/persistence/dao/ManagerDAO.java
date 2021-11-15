@@ -1,5 +1,8 @@
 package persistence.dao;
 
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import persistence.MyBatisConnectionFactory;
 import persistence.PooledDataSource;
 import persistence.dto.*;
 import view.ManagerView;
@@ -13,7 +16,7 @@ import java.util.*;
 public class ManagerDAO {
     private final DataSource ds = PooledDataSource.getDataSource();
     private Scanner sc = new Scanner(System.in);
-
+    private SqlSessionFactory sqlSessionFactory = MyBatisConnectionFactory.getSqlSessionFactory();
     public void register(Connection conn) {
         System.out.print("id 입력: ");
         String id = sc.next();
@@ -45,16 +48,9 @@ public class ManagerDAO {
             }
         }
     }
-    
-    public void login(Connection conn) {
-        System.out.print("id 입력: ");
-        String id = sc.next();
-        System.out.print("비밀번호 입력: ");
-        String password = sc.next();
-        login(conn, id, password);
-    }
 
-    private void login(Connection conn, String id, String password) {
+
+    public boolean login(Connection conn, String id, String password) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         String loginQuery = "Select password from manager where id = ?";
@@ -83,13 +79,7 @@ public class ManagerDAO {
             }
 
         }
-        if (isSuccess) {
-            System.out.println("로그인 성공");
-            ManagerView managerView = new ManagerView();
-            managerView.start(conn, id);
-        } else {
-            System.out.println("로그인 정보가 잘못 되었습니다.");
-        }
+        return isSuccess;
     }//완료
 
     public void psRegister(Connection conn) {
@@ -357,47 +347,20 @@ public class ManagerDAO {
 
     }
 
-    public void findAllOpenedSubject(Connection conn) {
-        Statement stmt = null;
-        ResultSet rs = null;
-        String selectAllSubjectQuery = "Select * from openedsubject";
-
+    public void findAllOpenedSubject() {
+        SqlSession session = sqlSessionFactory.openSession();
         try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(selectAllSubjectQuery);
-            while (rs.next()) {
-                String csCode = rs.getString("csCode");
-                String pNumber = rs.getString("pNumber");
-                int maxStudent = rs.getInt("maxStudent");
-                int lectureStartTime = rs.getInt("lectureStartTime");
-                int lectureEndTime = rs.getInt("lectureEndTime");
-                String lectureDay = rs.getString("lectureDay");
-                String lecutreRoom = rs.getString("lectureRoom");
+            List<Map<String, SubjectDTO>> result = session.selectList("mapper.SubjectMapper.selectAll");
+            printList(result);
+        }finally {
+            session.close();
+        }
+    }
 
-                openedSubjectDTO openedSubject = new openedSubjectDTO();
-                openedSubject.setCsCode(csCode);
-                openedSubject.setPNumber(pNumber);
-                openedSubject.setMaxStudent(maxStudent);
-                openedSubject.setLectureStartTime(lectureStartTime);
-                openedSubject.setLectureEndTime(lectureEndTime);
-                openedSubject.setLectureDay(lectureDay);
-                openedSubject.setLectureRoom(lecutreRoom);
-                System.out.println("openedSubject.toString() = " + openedSubject.toString());
-            }
-        } catch (SQLException e) {
-            System.out.println("error : " + e);
-        } finally {
-            try {
-                if (conn != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (conn != null && !stmt.isClosed()) {
-                    stmt.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
+    private void printList(List<Map<String, SubjectDTO>> list) {
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+            System.out.println((list.toArray())[i].toString());
         }
     }
 
@@ -540,138 +503,87 @@ public class ManagerDAO {
         }
     }
     private void cuSubject(Connection conn, int sel) {
-        if (sel == 2) {
-            showOpened(conn);
-        }
         System.out.print("과목 코드를 입력해주세요: ");
-        String csCode = sc.next();
-        showInfoOfProfessor();
-        System.out.println("담당 교수의 교번을 입력하세요: ");
-        String pNumber = sc.next();
-        int lecutreStartTime = 0;
-        int lectureEndTime = 0;
+        String sCode = sc.next();
+        System.out.print("과목 이름을 입력해주세요: ");
+        String sName = sc.next();
+        int credit = 0;
+        int grade = 0;
+        int semester = 0;
         while (true) {
+            System.out.print("학점을 입력해주세요: ");
             try {
-                System.out.print("수업 시작교시를 입력해주세요: ");
-                lecutreStartTime = sc.nextInt();
-            } catch (InputMismatchException e) {
+                credit = sc.nextInt();
+            }catch (InputMismatchException e) {
                 System.out.println("잘못된 형식입니다.");
                 sc.next();
                 continue;
             }
             break;
         }
-
         while (true) {
-            System.out.print("수업 끝 교시를 입력해주세요: ");
+            System.out.print("학년을 입력해주세요: ");
             try {
-                lectureEndTime = sc.nextInt();
-            } catch (InputMismatchException e) {
+                grade = sc.nextInt();
+            }catch (InputMismatchException e) {
                 System.out.println("잘못된 형식입니다.");
                 sc.next();
                 continue;
             }
             break;
         }
-        System.out.print("강의 요일 적어주세요 (예: Tue): ");
-        String lectureDay = sc.next();
-        System.out.print("강의실 이름을 입력해주세요: ");
-        String lectureRoom = sc.next();
+        while (true) {
+            System.out.print("학기을 입력해주세요: ");
+            try {
+                semester = sc.nextInt();
+            }catch (InputMismatchException e) {
+                System.out.println("잘못된 형식입니다.");
+                sc.next();
+                continue;
+            }
+            break;
+        }
+        SubjectDTO subjectDTO = new SubjectDTO();
+        subjectDTO.setSCode(sCode);
+        subjectDTO.setSName(sName);
+        subjectDTO.setCredit(credit);
+        subjectDTO.setGrade(grade);
+        subjectDTO.setSemester(semester);
 
-        openedSubjectDTO openedSubjectDTO = new openedSubjectDTO();
-        openedSubjectDTO.setCsCode(csCode);
-        openedSubjectDTO.setPNumber(pNumber);
-        openedSubjectDTO.setLectureStartTime(lecutreStartTime);
-        openedSubjectDTO.setLectureEndTime(lectureEndTime);
-        openedSubjectDTO.setLectureRoom(lectureRoom);
-        openedSubjectDTO.setLectureDay(lectureDay);
 
         if (sel == 1)
-            createSubject(conn, openedSubjectDTO);
+            createSubject(subjectDTO);
         else
-            updateSubject(conn, openedSubjectDTO);
+            updateSubject(subjectDTO);
     }
-
-    private void createSubject(Connection conn, openedSubjectDTO openedSubjectDTO) {
-        PreparedStatement pstmt = null;
-        String createSubjectQuery = "insert into openedSubject(csCode, pNumber, maxStudent, lectureStartTime, lectureEndTime, lectureDay, lectureRoom) values (?, ?, ?, ?, ?, ?, ?)";
+    public void createSubject(SubjectDTO subjectDTO) {
+        SqlSession session = sqlSessionFactory.openSession();
         try {
-            SubjectDTO subjectDTO = new SubjectDTO();
-            subjectDTO.setSCode(openedSubjectDTO.getCsCode());
-
-            ProfessorDTO professorDTO = new ProfessorDTO();
-            professorDTO.setPNumber(openedSubjectDTO.getPNumber());
-
-            if (checkSubject(subjectDTO) && checkProfessor(conn, professorDTO)) {//1번은 과목 코드가 db에 존재하는지 2번은 교번이 디비에 존재하는지
-                pstmt = conn.prepareStatement(createSubjectQuery);
-                pstmt.setString(1, subjectDTO.getSCode());
-                pstmt.setString(2, professorDTO.getPNumber());
-                pstmt.setInt(3, 3);
-                pstmt.setInt(4, openedSubjectDTO.getLectureStartTime());
-                pstmt.setInt(5, openedSubjectDTO.getLectureEndTime());
-                pstmt.setString(6, openedSubjectDTO.getLectureDay());
-                pstmt.setString(7, openedSubjectDTO.getLectureRoom());
-
-                pstmt.executeUpdate();
-                conn.commit();
-            } else if (!checkSubject(subjectDTO)) {
-                System.out.println("해당 과목 코드가 존재하지 않습니다.");
-            } else if (!checkProfessor(conn, professorDTO)) {
-                System.out.println("해당 교번이 존재하지 않습니다.");
-            } else {
-                System.out.println("해당 과목 코드와 교번이 둘 다 존재하지 않습니다.");
-            }
-        } catch (SQLException e) {
-            System.out.println("error : " + e);
-        } finally {
-            try {
-                if (pstmt != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            Map<String, Object> param = new HashMap<>();
+            param.put("sCode", subjectDTO.getSCode());
+            param.put("sName", subjectDTO.getSName());
+            param.put("credit", subjectDTO.getCredit());
+            param.put("grade", subjectDTO.getGrade());
+            param.put("semester", subjectDTO.getSemester());
+            int result = session.insert("mapper.SubjectMapper.insert", param);
+            session.commit();
+        }finally {
+            session.close();
         }
     }
-
-    private void updateSubject(Connection conn, openedSubjectDTO openedSubjectDTO) {
-        PreparedStatement pstmt = null;
-        String updatePrivacyQuery = "update openedSubject set lectureStartTime = ?, lectureEndTime = ?, lectureDay = ? , lectureRoom = ? where csCode = ? and pNumber = ?";
+    private void updateSubject(SubjectDTO subjectDTO) {
+        SqlSession session = sqlSessionFactory.openSession();
         try {
-            SubjectDTO subjectDTO = new SubjectDTO();
-            subjectDTO.setSCode(openedSubjectDTO.getCsCode());
-
-            ProfessorDTO professorDTO = new ProfessorDTO();
-            professorDTO.setPNumber(openedSubjectDTO.getPNumber());
-
-            if (checkSubject(subjectDTO) && checkProfessor(conn, professorDTO)) {//1번은 과목 코드가 db에 존재하는지 2번은 교번이 디비에 존재하는지
-                pstmt = conn.prepareStatement(updatePrivacyQuery);
-                pstmt.setInt(1, openedSubjectDTO.getLectureStartTime());
-                pstmt.setInt(2, openedSubjectDTO.getLectureEndTime());
-                pstmt.setString(3, openedSubjectDTO.getLectureDay());
-                pstmt.setString(4, openedSubjectDTO.getLectureRoom());
-                pstmt.setString(5, subjectDTO.getSCode());
-                pstmt.setString(6, professorDTO.getPNumber());
-
-                pstmt.executeUpdate();
-                conn.commit();
-            } else if (!checkSubject(subjectDTO)) {
-                System.out.println("해당 과목 코드가 존재하지 않습니다.");
-            } else if (!checkProfessor(conn, professorDTO)) {
-                System.out.println("해당 교번이 존재하지 않습니다.");
-            } else {
-                System.out.println("해당 과목 코드와 교번이 둘 다 존재하지 않습니다.");
-            }
-        } catch (SQLException e) {
-            System.out.println("error : " + e);
-        } finally {
-            try {
-                if (conn != null && !pstmt.isClosed()) {
-                    pstmt.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            Map<String, Object> param = new HashMap<>();
+            param.put("sCode", subjectDTO.getSCode());
+            param.put("sName", subjectDTO.getSName());
+            param.put("credit", subjectDTO.getCredit());
+            param.put("grade", subjectDTO.getGrade());
+            param.put("semester", subjectDTO.getSemester());
+            int result = session.update("mapper.SubjectMapper.update", param);
+            session.commit();
+        }finally {
+            session.close();
         }
     }
 

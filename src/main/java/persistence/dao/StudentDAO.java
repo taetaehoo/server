@@ -15,26 +15,7 @@ public class StudentDAO {
     private final DataSource ds = PooledDataSource.getDataSource();
     private Scanner sc = new Scanner(System.in);
 
-    public void login(Connection conn) {
-        int sNumber = 0;
-        while (true) {
-            System.out.print("id 입력: ");
-
-            try {
-                sNumber = sc.nextInt();
-            } catch (InputMismatchException e) {
-                System.out.println("잘못된 입력 형식입니다.");
-                sc.next();
-                continue;
-            }
-            break;
-        }
-        System.out.print("비밀번호 입력: ");
-        String password = sc.next();
-        login(conn, sNumber, password);
-    }
-
-    private void login(Connection conn, int sNumber, String password) {
+    public boolean login(Connection conn, int sNumber, String password) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         String loginQuery = "Select password from student where sNumber = ?";
@@ -63,13 +44,7 @@ public class StudentDAO {
             }
 
         }
-        if (isSuccess) {
-            System.out.println("로그인 성공");
-            StudentView studentView = new StudentView();
-            studentView.start(conn, sNumber);
-        } else {
-            System.out.println("로그인 정보가 잘못 되었습니다.");
-        }
+        return isSuccess;
     }//완료
 
     public void updatePrivacy(Connection conn, int sNumber) {

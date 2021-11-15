@@ -1,11 +1,16 @@
 package persistence.dao;
 
 import org.apache.commons.dbcp2.DelegatingResultSet;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import persistence.MyBatisConnectionFactory;
 import persistence.PooledDataSource;
 import persistence.dto.ProfessorDTO;
 import persistence.dto.StudentDTO;
 import persistence.dto.SubjectDTO;
 import persistence.dto.openedSubjectDTO;
+import service.SqlMapConfig;
+import service.openedMapperInter;
 import view.ManagerView;
 import view.ProfessorView;
 
@@ -13,21 +18,119 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.InputMismatchException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ProfessorDAO {
     private final DataSource ds = PooledDataSource.getDataSource();
     private Scanner sc = new Scanner(System.in);
+    private SqlSessionFactory factory = SqlMapConfig.getSqlSession();
+    public void printList(List<openedSubjectDTO> list) {
+        int size = list.size();
+        for (int i = 0; i < size; i++) {
+            System.out.println(list.toArray()[i].toString());
+        }
+    }
+    public List<openedSubjectDTO> selectAll() {
+        SqlSession sqlSession = factory.openSession();
+        List<openedSubjectDTO> list = null;
 
-    public void login(Connection conn) {
-        System.out.print("id 입력: ");
-        String pNumber = sc.next();
-        System.out.print("비밀번호 입력: ");
-        String password = sc.next();
-        login(conn, pNumber, password);
+        try {
+            openedMapperInter inter = (openedMapperInter)sqlSession.getMapper(openedMapperInter.class);
+
+            list = inter.selectAll();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            sqlSession.close();
+        }
+        return list;
     }
 
-    private void login(Connection conn, String pNumber, String password) {
+    public List<openedSubjectDTO> selectGrade(int grade) {
+        SqlSession sqlSession = factory.openSession();
+        List <openedSubjectDTO> list = null;
+
+        try {
+            openedMapperInter inter = (openedMapperInter) sqlSession.getMapper(openedMapperInter.class);
+
+            list = inter.selectGrade(grade);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            sqlSession.close();
+        }
+        return list;
+    }
+
+    public List<openedSubjectDTO> selectProfessor(String pNumber) {
+        SqlSession sqlSession = factory.openSession();
+        List <openedSubjectDTO> list = null;
+
+        try {
+            openedMapperInter inter = (openedMapperInter) sqlSession.getMapper(openedMapperInter.class);
+
+            list = inter.selectProfessor(pNumber);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            sqlSession.close();
+        }
+        return list;
+    }
+
+    public List<openedSubjectDTO> selectGradeAndProfessor(String pNumber, int grade) {
+        SqlSession sqlSession = factory.openSession();
+        List <openedSubjectDTO> list = null;
+
+        try {
+            openedMapperInter inter = (openedMapperInter) sqlSession.getMapper(openedMapperInter.class);
+            list = inter.selectGradeAndProfessor(grade, pNumber);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            sqlSession.close();
+        }
+        return list;
+    }
+    public boolean updateData(openedSubjectDTO openedSubjectDTO) {
+        boolean b = false;
+        SqlSession sqlSession = factory.openSession();
+        try {
+            openedMapperInter inter = (openedMapperInter) sqlSession.getMapper(openedMapperInter.class);
+            if (inter.updateData(openedSubjectDTO) > 0) {
+                b = true;
+                sqlSession.commit();
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+            sqlSession.rollback();
+        }finally {
+            sqlSession.close();
+        }
+        return b;
+    }
+    public boolean insertData(openedSubjectDTO openedSubjectDTO) {
+        boolean b = false;
+        SqlSession sqlSession = factory.openSession();
+        try {
+            openedMapperInter inter = (openedMapperInter) sqlSession.getMapper(openedMapperInter.class);
+            if (inter.insertData(openedSubjectDTO) > 0) {
+                    b= true;
+                sqlSession.commit();
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+            sqlSession.rollback();
+        }finally {
+            sqlSession.close();
+        }
+        return b;
+    }
+
+
+    public boolean login(Connection conn, String pNumber, String password) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         String loginQuery = "Select password from professor where pNumber = ?";
@@ -56,13 +159,7 @@ public class ProfessorDAO {
             }
 
         }
-        if (isSuccess) {
-            System.out.println("로그인 성공");
-            ProfessorView professorView = new ProfessorView();
-            professorView.start(conn, pNumber);
-        } else {
-            System.out.println("로그인 정보가 잘못 되었습니다.");
-        }
+        return isSuccess;
     }//완료
 
     public void updatePrivacy(Connection conn, String pNumber) {

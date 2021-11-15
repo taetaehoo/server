@@ -5,7 +5,7 @@
 
 <configuration>
     <typeAliases>
-        <typeAlias alias="Manager" type="persistence.dto.ManagerDTO"/>
+        <typeAlias alias="openedSubject" type="persistence.dto.openedSubjectDTO"/>
     </typeAliases>
 
     <environments default="development">

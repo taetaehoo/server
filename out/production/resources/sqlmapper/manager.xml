@@ -3,21 +3,21 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="mapper.ManagerMapper">
-    <resultMap id="result" type="persistence.dto.ManagerDTO">
-        <result property="id" column="id"/>
-        <result property="password" column="password"/>
+<mapper namespace="mapper.SubjectMapper">
+    <resultMap id="result" type="persistence.dto.SubjectDTO">
+        <result property="sCode" column="sCode"/>
+        <result property="sName" column="sName"/>
+        <result property="credit" column="credit"/>
+        <result property="grade" column="grade"/>
+        <result property="semester" column ="semester"/>
     </resultMap>
     <select id="selectAll" resultMap="result">
-        SELECT * FROM BOARD
+        SELECT * FROM union.subject;
     </select>
-    <update id="updatePostWithBoardID">
-        UPDATE board set title = #{title} , contents = #{contents} where board_id = #{id}
+    <update id="update">
+        UPDATE union.subject set sCode = #{sCode} , sName = #{sName}, credit = #{credit}, grade = #{grade}, semester = #{semester} where sCode = #{sCode};
     </update>
-    <delete id="deletePost">
-        DELETE from board where board_id = #{board_id};
-    </delete>
-    <insert id="register">
-        insert into board (id, password) values (#{id}, #{password})
+    <insert id="insert">
+        insert into union.subject (sCode, sName, credit, grade, semester) values (#{sCode}, #{sName}, #{credit}, #{grade}, #{semester});
     </insert>
 </mapper>

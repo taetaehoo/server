@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 public class LoginView {
     private Scanner sc = new Scanner(System.in);
+
     private ManagerDAO managerDAO = new ManagerDAO();
     private ProfessorDAO professorDAO = new ProfessorDAO();
     private StudentDAO studentDAO = new StudentDAO();
@@ -53,16 +54,16 @@ public class LoginView {
             }
             switch (sel) {
                 case 1:
-                    managerDAO.login(conn);
+                    //managerDAO.login(conn);
                     break;
                 case 2:
                     managerDAO.register(conn);
                     break;
                 case 3:
-                    professorDAO.login(conn);
+                    //professorDAO.login(conn);
                     break;
                 case 4:
-                    studentDAO.login(conn);
+                    //studentDAO.login(conn);
                     break;
                 case 5:
                     System.out.println("종료합니다.");

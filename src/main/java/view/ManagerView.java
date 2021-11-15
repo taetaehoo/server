@@ -8,6 +8,7 @@ import java.util.Scanner;
 public class ManagerView {
     private Scanner sc = new Scanner(System.in);
     private ManagerDAO managerDAO = new ManagerDAO();
+
     public void start(Connection conn, String id) {
 
         while (true) {
@@ -17,7 +18,7 @@ public class ManagerView {
             System.out.println("3. 강의 계획서 입력 기간 설정");
             System.out.println("4. 학년별 수강 신청 기간 설정");
             System.out.println("5. 교수/학생 정보 조회");
-            System.out.println("6. 개설 교과목 정보 조회");
+            System.out.println("6. 교과목 정보 조회");
             System.out.println("7. 뒤로 가기");
             System.out.print("메뉴 선택: ");
             while (true) {
@@ -35,6 +36,7 @@ public class ManagerView {
                     managerDAO.psRegister(conn);
                     break;
                 case 2:
+                    //xml coding
                     managerDAO.subjectCUD(conn);
                     break;
                 case 3:
@@ -47,7 +49,7 @@ public class ManagerView {
                     managerDAO.psSelect(conn);
                     break;
                 case 6:
-                    managerDAO.findAllOpenedSubject(conn);
+                    managerDAO.findAllOpenedSubject();
                     break;
                 case 7:
                     System.out.println("뒤로가기");
